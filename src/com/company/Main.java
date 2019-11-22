@@ -3,14 +3,22 @@ package com.company;
 import com.couchbase.client.java.*;
 import com.couchbase.client.java.document.*;
 import com.couchbase.client.java.document.json.*;
+import com.couchbase.client.java.env.CouchbaseEnvironment;
+import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 import com.couchbase.client.java.query.N1qlQuery;
 import com.couchbase.client.java.query.N1qlQueryResult;
 import com.couchbase.client.java.query.N1qlQueryRow;
+import com.couchbase.client.java.query.Select;
 import com.couchbase.client.java.query.SimpleN1qlQuery;
+import com.couchbase.client.java.query.Statement;
 import java.util.Comparator;
 import java.time.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.zip.CRC32;
+import rx.Observable;
+import static com.couchbase.client.java.query.Select.select;
+import static com.couchbase.client.java.query.dsl.Expression.*;
 
 
 public class Main {
@@ -21,25 +29,25 @@ public class Main {
     public static final long SLICE_END = 90;
 
     public static void main(String[] args) {
-	// write your code here
-        Cluster cluster = CouchbaseCluster.create();
-        cluster.authenticate("thirdeye", "thirdeye");
-        Bucket bucket = cluster.openBucket("travel-sample");
 
-        Comparator<Object> c = new Comparator<Object>() {
-            public int compare(Object u1, Object u2) {
-                return Long.compare(((Number)u1).longValue(), ((Number)u2).longValue());
-            }
-        };
+//        Cluster cluster = CouchbaseCluster.create("localhost:8091");
+//        cluster.authenticate("thirdeye", "thirdeye");
+//        Bucket bucket = cluster.openBucket("travel-sample");
 
+      CouchbaseEnvironment env = DefaultCouchbaseEnvironment
+          .builder()
+          .sslEnabled(true)
+          .sslKeystoreFile("/export/content/lid/apps/thirdeye-webapp/i001/var/identity.cert")
+          .sslKeystorePassword("work_around_jdk-6879539")
+          .build();
         //try {
             //Instant start = Instant.now();
 
-        final ExecutorService executor = Executors.newCachedThreadPool();
+        //final ExecutorService executor = Executors.newCachedThreadPool();
 
-        LocalDateTime d = LocalDateTime.now().plusYears(2);
+        //LocalDateTime d = LocalDateTime.now().plusYears(2);
 
-        Instant start = Instant.now();
+        //Instant start = Instant.now();
 //        for (int i = 1000; i > 0; i--) {
 //            System.out.println(bucket.upsert(JsonDocument.create("lolol"+String.valueOf(i), JsonObject.create()
 //               .put("date", d.plusDays(i).toString())
@@ -49,7 +57,7 @@ public class Main {
 //            )));
 //        }
 
-        N1qlQueryResult result = bucket.query(
+        /*N1qlQueryResult result = bucket.query(
             N1qlQuery.simple("select * from `travel-sample` where date BETWEEN \"2022-10-02T14:40:10.400\" AND \"2023-07-03T10:10:18.615\"")
         );
 
@@ -60,8 +68,90 @@ public class Main {
 
         for (N1qlQueryRow row : result) {
             System.out.println(row);
-        }
+        }*/
 
+        Instant start = Instant.now();
+
+//        JsonDocument doc = JsonDocument.create("123456", 36000, JsonObject.create().put("name", "bryan"));
+//
+//        //((JsonObject)doc.content().get("dims")).put("123", "abc");
+//
+//        Observable<JsonDocument> a = bucket.async().get("123456");
+//
+//        a.subscribe(r -> System.out.println(r));
+//
+//        try {
+//            Thread.sleep(100);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+
+//        N1qlQueryResult r = bucket.query(N1qlQuery.simple("select * from `travel-sample` where asdasdsad = 123123123;"));
+//
+//        System.out.println(r.info().resultCount());
+
+//        String dimensionKey = "2964793212";
+//        String baseQuery = "SELECT time, `dims`.`" + dimensionKey + "` FROM `$bucket` WHERE metricId = $metricId AND time BETWEEN $start AND $end ORDER BY time ASC";
+//
+//        StringBuilder sb = new StringBuilder("SELECT time, `dims`.`");
+//        sb.append(dimensionKey);
+//        sb.append("` FROM `");
+//        sb.append("travel-sample");
+//        sb.append("` WHERE metricId = ");
+//        sb.append(112869415);
+//        sb.append(" AND time BETWEEN ");
+//        sb.append(1568271600000L);
+//        sb.append(" AND ");
+//        sb.append(1568790000000L);
+//        sb.append(" ORDER BY time ASC");
+//
+//        // NOTE: we subtract one from the end date because Couchabase's BETWEEN clause is inclusive on both sides
+//        JsonObject parameters = JsonObject.create()
+//            .put("bucket", "travel-sample")
+//            .put("metricId", 112869415)
+//            .put("start", 1568271600000L)
+//            .put("end", 1568790000000L);
+
+        //String query = "SELECT time, `dims`.`2810290851` FROM `travel-sample` WHERE metricId = 3572379 AND time BETWEEN 1561618800000 AND 1569481199999 ORDER BY time ASC";
+
+//        String query = String.format("SELECT time, `%s` FROM `%s` WHERE metricId = %d AND time BETWEEN %d AND %d ORDER BY time ASC",
+//            "2810290851", "travel-sample", 3572379, 1561618800000L, 1569481199999L);
+//
+//        Statement q = select("time", "999").from("travel-sample").where("me")
+
+//        String query = "lol";
+//
+//       N1qlQueryResult queryResult = bucket.query(N1qlQuery.simple(query));
+//
+//        for (JsonObject error : queryResult.errors()) {
+//            System.out.println(error.getString("msg"));
+//        }
+
+      //double a = bucket.get("123456").content().getDouble("metricId");
+
+      //System.out.println(a);
+
+//        System.out.println(queryResult);
+//
+//        for (N1qlQueryRow row : queryResult) {
+//            if (row == null)
+//                System.out.println("wtf");
+//            else
+//                System.out.println(row);
+//        }
+
+
+        Instant end = Instant.now();
+        System.out.println("Took " + Duration.between(start, end).toMillis() + " ms");
+
+        //JsonObject j = JsonObject.create()
+        //    .put("name1", "jeffrey");
+
+        //bucket.upsert(JsonDocument.create("123456", j));
+
+
+
+        //System.out.println(Duration.between(a, b).toMillis());
             /*
 
             Map<String, String> testt = new HashMap<String, String>() {{
