@@ -1,6 +1,7 @@
 package com.company;
 
 import com.couchbase.client.java.*;
+import com.couchbase.client.java.auth.CertAuthenticator;
 import com.couchbase.client.java.document.*;
 import com.couchbase.client.java.document.json.*;
 import com.couchbase.client.java.env.CouchbaseEnvironment;
@@ -11,8 +12,12 @@ import com.couchbase.client.java.query.N1qlQueryRow;
 import com.couchbase.client.java.query.Select;
 import com.couchbase.client.java.query.SimpleN1qlQuery;
 import com.couchbase.client.java.query.Statement;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.time.*;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.zip.CRC32;
@@ -34,12 +39,56 @@ public class Main {
 //        cluster.authenticate("thirdeye", "thirdeye");
 //        Bucket bucket = cluster.openBucket("travel-sample");
 
+
       CouchbaseEnvironment env = DefaultCouchbaseEnvironment
           .builder()
+          //.dnsSrvEnabled(true)
           .sslEnabled(true)
-          .sslKeystoreFile("/export/content/lid/apps/thirdeye-webapp/i001/var/identity.cert")
+          .sslKeystoreFile("/export/content/lid/apps/thirdeye-webapp/i001/var/identity.p12")
           .sslKeystorePassword("work_around_jdk-6879539")
+          .sslTruststoreFile("/etc/riddler/cacerts")
+          .sslTruststorePassword("")
+          .certAuthEnabled(true)
           .build();
+//
+//      String sssss = ".com";
+//
+//      try {
+//        URI uri = new URI(sssss);
+//        // The next workaround is to correctly parse urls that don't include any schema
+//        if (uri.getHost() == null) {
+//          uri = new URI("http://" + sssss);
+//        }
+//        String host = uri.getHost();
+//        System.out.println(host);
+//      } catch (URISyntaxException e) {
+//
+//      }
+
+      //System.exit(1);
+
+      List<String> hosts = new ArrayList<>();
+//      hosts.add(null);
+      hosts.add("http://localhost:8091");
+
+        Cluster cluster = CouchbaseCluster.create(env, hosts);
+        cluster.authenticate(CertAuthenticator.INSTANCE);
+
+        Bucket bucket = cluster.openBucket("thirdeye-cache");
+
+        bucket.upsert(JsonDocument.create("hi", JsonObject.create().put("hey", "hi")).);
+
+/*      N1qlQueryResult result = bucket.query(
+          N1qlQuery.simple("select * from `thirdeye-cache` where `bryan` = `ji`;")
+      );
+
+      System.out.println(result);*/
+
+//      System.out.println(bucket.get("hi2"));
+      //
+//        bucket.upsert(JsonDocument.create("hi", JsonObject.create().put("third", "eye")));
+
+        //System.out.println(bucket.get("hi"));
         //try {
             //Instant start = Instant.now();
 
@@ -112,7 +161,7 @@ public class Main {
 //            .put("start", 1568271600000L)
 //            .put("end", 1568790000000L);
 
-        //String query = "SELECT time, `dims`.`2810290851` FROM `travel-sample` WHERE metricId = 3572379 AND time BETWEEN 1561618800000 AND 1569481199999 ORDER BY time ASC";
+        //String query = "SELECT timestamp, `2810290851` FROM `travel-sample` WHERE metricId = 3572379 AND time BETWEEN 1566172800000 AND 1573977600000 ORDER BY time ASC";
 
 //        String query = String.format("SELECT time, `%s` FROM `%s` WHERE metricId = %d AND time BETWEEN %d AND %d ORDER BY time ASC",
 //            "2810290851", "travel-sample", 3572379, 1561618800000L, 1569481199999L);
@@ -121,7 +170,7 @@ public class Main {
 
 //        String query = "lol";
 //
-//       N1qlQueryResult queryResult = bucket.query(N1qlQuery.simple(query));
+       //N1qlQueryResult queryResult = bucket.query(N1qlQuery.simple(query));
 //
 //        for (JsonObject error : queryResult.errors()) {
 //            System.out.println(error.getString("msg"));
@@ -133,15 +182,17 @@ public class Main {
 
 //        System.out.println(queryResult);
 //
-//        for (N1qlQueryRow row : queryResult) {
-//            if (row == null)
-//                System.out.println("wtf");
-//            else
-//                System.out.println(row);
-//        }
 
 
         Instant end = Instant.now();
+
+//      for (N1qlQueryRow row : queryResult) {
+//        if (row == null)
+//          System.out.println("wtf");
+//        else
+//          System.out.println(row);
+//      }
+
         System.out.println("Took " + Duration.between(start, end).toMillis() + " ms");
 
         //JsonObject j = JsonObject.create()
